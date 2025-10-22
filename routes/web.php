@@ -12,7 +12,7 @@ Route::get('dashboard', DashboardController::class)->middleware(['auth', 'verifi
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
-
+require __DIR__.'/posts.php';
 
 Route::get("test", function () {
     return 'tere';
