@@ -1,11 +1,19 @@
 <script setup lang="ts">
 import Button from '@/components/ui/button/Button.vue';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import Pagination from '@/components/ui/pagination/Pagination.vue';
+import PaginationContent from '@/components/ui/pagination/PaginationContent.vue';
+import PaginationEllipsis from '@/components/ui/pagination/PaginationEllipsis.vue';
+import PaginationFirst from '@/components/ui/pagination/PaginationFirst.vue';
+import PaginationItem from '@/components/ui/pagination/PaginationItem.vue';
+import PaginationLast from '@/components/ui/pagination/PaginationLast.vue';
+import PaginationNext from '@/components/ui/pagination/PaginationNext.vue';
+import PaginationPrevious from '@/components/ui/pagination/PaginationPrevious.vue';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { index } from '@/routes/posts';
 import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import { MoreVertical } from 'lucide-vue-next';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -14,6 +22,29 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: index().url,
     },
 ];
+
+interface PaginationLink {
+  url: string | null;
+  label: string;
+  page?: number | null;
+  active: boolean;
+}
+
+interface PaginatedResponse {
+  current_page: number;
+  data: Post[];
+  first_page_url: string;
+  from: number;
+  last_page: number;
+  last_page_url: string;
+  links: PaginationLink[];
+  next_page_url: string | null;
+  path: string;
+  per_page: number;
+  prev_page_url: string | null;
+  to: number;
+  total: number;
+}
 
 type Post = {
     id: number;
@@ -28,7 +59,7 @@ type Post = {
 };
 
 defineProps<{
-    posts: Post[];
+    posts: PaginatedResponse;
 }>();
 </script>
 
@@ -38,11 +69,6 @@ defineProps<{
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-col gap-4 overflow-x-auto rounded-xl p-4">
             <!-- <pre>{{ posts }}</pre> -->
-            <ul>
-                <li v-for="(post, index) in posts" :key="index">
-                    {{ post.title }}
-                </li>
-            </ul>
             <Table>
                 <TableCaption>A list of your recent blog posts.</TableCaption>
                 <TableHeader>
@@ -59,7 +85,7 @@ defineProps<{
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    <TableRow v-for="post in posts" :key="post.id">
+                    <TableRow v-for="post in posts.data" :key="post.id">
                         <TableCell class="font-medium"> {{ post.id }} </TableCell>
                         <TableCell>{{ post.title }}</TableCell>
                         <TableCell>{{ post.author }}</TableCell>
@@ -68,26 +94,51 @@ defineProps<{
                         <TableCell>{{ post.published }}</TableCell>
                         <TableCell class="text-right"> .00 </TableCell>
                         <TableCell>
-                            <div class="justify-end flex">
-                              <DropdownMenu>
-                                <DropdownMenuTrigger as-child class>
-                                    <Button size="icon" variant="ghost">
-                                        <MoreVertical />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent>
-                                    <DropdownMenuItem>View</DropdownMenuItem>
-                                    <DropdownMenuItem>Edit</DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem class="text-destructive"></DropdownMenuItem>
-                                    <DropdownMenuItem>Delete</DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
+                            <div class="flex justify-end">
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger as-child>
+                                        <Button size="icon" variant="ghost">
+                                            <MoreVertical />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent>
+                                        <DropdownMenuItem>View</DropdownMenuItem>
+                                        <DropdownMenuItem>Edit</DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem class="text-destructive">Delete</DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
                             </div>
                         </TableCell>
                     </TableRow>
                 </TableBody>
             </Table>
+             <Pagination 
+                class="w-full" 
+                :page="posts.current_page" 
+                v-slot="{ page }" 
+                :total="posts.total" 
+                :items-per-page="posts.per_page" 
+                @update:page="(page) => router.get(index().url, { page:page })"
+             >
+
+                <PaginationContent v-slot="{ items }" class="flex items-center gap-1">
+                  <PaginationFirst />
+                  <PaginationPrevious />
+            
+                  <template v-for="(item, index) in items">
+                    <PaginationItem v-if="item.type === 'page'" :key="index" :value="item.value" as-child>
+                      <Button class="w-10 h-10 p-0" :variant="item.value === page ? 'default' : 'outline'">
+                        {{ item.value }}
+                      </Button>
+                    </PaginationItem>
+                    <PaginationEllipsis v-else :key="item.type" :index="index" />
+                  </template>
+            
+                  <PaginationNext />
+                  <PaginationLast />
+                </PaginationContent>
+              </Pagination>
         </div>
     </AppLayout>
 </template>
