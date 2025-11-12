@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Author;
 use Illuminate\Http\Request;
-
+use Inertia\Inertia;
 class AuthorController extends Controller
 {
     /**
@@ -12,15 +12,16 @@ class AuthorController extends Controller
      */
     public function index()
     {
-        //
-    }
-
+        return Inertia::render('authors/Index', [
+            'authors' => Author::paginate(30),
+        ]);
+    }   
     /**
      * Show the form for creating a new resource.
      */
     public function create()
     {
-        //
+        return Inertia::render('authors/Create');
     }
 
     /**
@@ -28,7 +29,12 @@ class AuthorController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        Author::create($request->validate([
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'date_of_birth' => 'required|date',
+        ]));
+        return redirect()->route('authors.index')->with('success', 'Author created successfully.');
     }
 
     /**
@@ -36,7 +42,9 @@ class AuthorController extends Controller
      */
     public function show(Author $author)
     {
-        //
+        return Inertia::render('authors/View', [
+            'author' => $author,
+        ]);
     }
 
     /**
@@ -44,7 +52,9 @@ class AuthorController extends Controller
      */
     public function edit(Author $author)
     {
-        //
+        return Inertia::render('authors/Edit', [
+            'author' => $author,
+        ]);
     }
 
     /**
@@ -52,14 +62,20 @@ class AuthorController extends Controller
      */
     public function update(Request $request, Author $author)
     {
-        //
+        $author->update($request->validate([
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'date_of_birth' => 'required|date',
+        ]));
+        return redirect()->route('authors.index')->with('success', 'Author updated successfully.');
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Remove the specified resource from storage.  
      */
     public function destroy(Author $author)
     {
-        //
+        $author->delete();
+        return redirect()->route('authors.index')->with('success', 'Author deleted successfully.');
     }
 }
