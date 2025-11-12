@@ -16,13 +16,15 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import { MoreVertical } from 'lucide-vue-next';
 
+// Breadcrumbs for layout navigation
 const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Posts',
-        href: index().url,
-    },
+  {
+    title: 'Posts',
+    href: index().url,
+  },
 ];
 
+// Type definitions
 interface PaginationLink {
   url: string | null;
   label: string;
@@ -47,98 +49,134 @@ interface PaginatedResponse {
 }
 
 type Post = {
-    id: number;
-    title: string;
-    content: string;
-    author: string;
-    published: boolean;
-    created_at: string;
-    updated_at: string;
-    created_at_formatted: string;
-    updated_at_formatted: string;
+  id: number;
+  title: string;
+  content: string;
+  author: string;
+  published: boolean;
+  created_at: string;
+  updated_at: string;
+  created_at_formatted: string;
+  updated_at_formatted: string;
 };
 
+
 defineProps<{
-    posts: PaginatedResponse;
+  posts: PaginatedResponse;
 }>();
+
+// 🗑️ Delete post function
+function deletePost(postId: number) {
+  if (!confirm('Are you sure you want to delete this post?')) return;
+  router.delete(router('posts.destroy', postId), {
+    preserveScroll: true,
+    onSuccess: () => {
+      console.log('Post deleted successfully.');
+    },
+    onError: (err) => {
+      console.error(err);
+      alert('Failed to delete post.');
+    },
+  });
+}
 </script>
 
 <template>
-    <Head title="Posts" />
+  <Head title="Posts" />
 
-    <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex h-full flex-col gap-4 overflow-x-auto rounded-xl p-4">
-            <!-- <pre>{{ posts }}</pre> -->
-            <Table>
-                <TableCaption>A list of your recent blog posts.</TableCaption>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead class="w-[100px]"> ID </TableHead>
-                        <TableHead>Title</TableHead>
-                        <TableHead>Author</TableHead>
-                        <TableHead class="text-right"> Created at </TableHead>
-                        <TableHead class="text-right"> Updated At</TableHead>
-                        <TableHead class="text-right"> Published </TableHead>
-                        <TableHead>
-                            <span class="sr-only">Actions</span>
-                        </TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    <TableRow v-for="post in posts.data" :key="post.id">
-                        <TableCell class="font-medium"> {{ post.id }} </TableCell>
-                        <TableCell>{{ post.title }}</TableCell>
-                        <TableCell>{{ post.author }}</TableCell>
-                        <TableCell>{{ post.created_at_formatted }}</TableCell>
-                        <TableCell>{{ post.updated_at_formatted }}</TableCell>
-                        <TableCell>{{ post.published }}</TableCell>
-                        <TableCell class="text-right"> .00 </TableCell>
-                        <TableCell>
-                            <div class="flex justify-end">
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger as-child>
-                                        <Button size="icon" variant="ghost">
-                                            <MoreVertical />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent>
-                                        <DropdownMenuItem>View</DropdownMenuItem>
-                                        <DropdownMenuItem>Edit</DropdownMenuItem>
-                                        <DropdownMenuSeparator />
-                                        <DropdownMenuItem class="text-destructive">Delete</DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            </div>
-                        </TableCell>
-                    </TableRow>
-                </TableBody>
-            </Table>
-             <Pagination 
-                class="w-full" 
-                :page="posts.current_page" 
-                v-slot="{ page }" 
-                :total="posts.total" 
-                :items-per-page="posts.per_page" 
-                @update:page="(page) => router.get(index().url, { page:page })"
-             >
+  <AppLayout :breadcrumbs="breadcrumbs">
+    <div class="flex h-full flex-col gap-4 overflow-x-auto rounded-xl p-4">
+      <!-- <pre>{{ posts }}</pre> -->
 
-                <PaginationContent v-slot="{ items }" class="flex items-center gap-1">
-                  <PaginationFirst />
-                  <PaginationPrevious />
-            
-                  <template v-for="(item, index) in items">
-                    <PaginationItem v-if="item.type === 'page'" :key="index" :value="item.value" as-child>
-                      <Button class="w-10 h-10 p-0" :variant="item.value === page ? 'default' : 'outline'">
-                        {{ item.value }}
-                      </Button>
-                    </PaginationItem>
-                    <PaginationEllipsis v-else :key="item.type" :index="index" />
-                  </template>
-            
-                  <PaginationNext />
-                  <PaginationLast />
-                </PaginationContent>
-              </Pagination>
-        </div>
-    </AppLayout>
+      <Table>
+        <TableCaption>A list of your recent blog posts.</TableCaption>
+        <TableHeader>
+          <TableRow>
+            <TableHead class="w-[100px]">ID</TableHead>
+            <TableHead>Title</TableHead>
+            <TableHead>Author</TableHead>
+            <TableHead class="text-right">Created at</TableHead>
+            <TableHead class="text-right">Updated At</TableHead>
+            <TableHead class="text-right">Published</TableHead>
+            <TableHead>
+              <span class="sr-only">Actions</span>
+            </TableHead>
+          </TableRow>
+        </TableHeader>
+
+        <TableBody>
+          <TableRow v-for="post in posts.data" :key="post.id">
+            <TableCell class="font-medium">{{ post.id }}</TableCell>
+            <TableCell>{{ post.title }}</TableCell>
+            <TableCell>{{ post.author }}</TableCell>
+            <TableCell class="text-right">{{ post.created_at_formatted }}</TableCell>
+            <TableCell class="text-right">{{ post.updated_at_formatted }}</TableCell>
+            <TableCell class="text-right">
+              <span :class="post.published ? 'text-green-600' : 'text-gray-400'">
+                {{ post.published ? 'Yes' : 'No' }}
+              </span>
+            </TableCell>
+
+            <TableCell>
+              <div class="flex justify-end">
+                <DropdownMenu>
+                  <DropdownMenuTrigger as-child>
+                    <Button size="icon" variant="ghost">
+                      <MoreVertical />
+                    </Button>
+                  </DropdownMenuTrigger>
+
+                  <DropdownMenuContent>
+                    <DropdownMenuItem>View</DropdownMenuItem>
+                    <DropdownMenuItem>Edit</DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      class="text-destructive"
+                      @click="deletePost(post.id)"
+                    >
+                      Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
+
+      <Pagination
+        class="w-full"
+        :page="posts.current_page"
+        v-slot="{ page }"
+        :total="posts.total"
+        :items-per-page="posts.per_page"
+        @update:page="(page) => router.get(index().url, { page: page })"
+      >
+        <PaginationContent v-slot="{ items }" class="flex items-center gap-1">
+          <PaginationFirst />
+          <PaginationPrevious />
+
+          <template v-for="(item, index) in items" :key="index">
+            <PaginationItem
+              v-if="item.type === 'page'"
+              :value="item.value"
+              as-child
+            >
+              <Button
+                class="w-10 h-10 p-0"
+                :variant="item.value === page ? 'default' : 'outline'"
+              >
+                {{ item.value }}
+              </Button>
+            </PaginationItem>
+
+            <PaginationEllipsis v-else :key="item.type" :index="index" />
+          </template>
+
+          <PaginationNext />
+          <PaginationLast />
+        </PaginationContent>
+      </Pagination>
+    </div>
+  </AppLayout>
 </template>
