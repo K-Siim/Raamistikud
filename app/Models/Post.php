@@ -35,7 +35,7 @@ class Post extends Model
     protected function updatedAtFormatted(): Attribute
     {
        return Attribute::make(
-            get: fn() => $this->created_at?->diffForHumans()
+            get: fn() => $this->updated_at?->diffForHumans()
         );
     }
 

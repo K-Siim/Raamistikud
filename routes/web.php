@@ -11,6 +11,7 @@ Route::get('/', function () {
 
 Route::get('dashboard', DashboardController::class)->middleware(['auth', 'verified'])->name('dashboard');
 Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
+Route::get('/posts/{post}/edit', [PostController::class, 'edit'])->name('posts.edit');
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
 require __DIR__.'/posts.php';

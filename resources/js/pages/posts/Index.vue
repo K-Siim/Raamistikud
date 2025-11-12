@@ -11,9 +11,9 @@ import PaginationNext from '@/components/ui/pagination/PaginationNext.vue';
 import PaginationPrevious from '@/components/ui/pagination/PaginationPrevious.vue';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { index } from '@/routes/posts';
+import { destroy, edit, show, index } from '@/routes/posts';
 import { type BreadcrumbItem } from '@/types';
-import { Head, router } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import { MoreVertical } from 'lucide-vue-next';
 
 // Breadcrumbs for layout navigation
@@ -64,24 +64,24 @@ type Post = {
 defineProps<{
   posts: PaginatedResponse;
 }>();
-
-// 🗑️ Delete post function
-function deletePost(postId: number) {
-  if (!confirm('Are you sure you want to delete this post?')) return;
-  router.delete(router('posts.destroy', postId), {
+const deletePost = (postId: number) => {
+  if (!confirm('Aga miks sa kustutad?')) return;
+  router.delete(destroy.url(postId), {
     preserveScroll: true,
     onSuccess: () => {
-      console.log('Post deleted successfully.');
+      console.log('Postitus sai kustutatud.');
     },
     onError: (err) => {
       console.error(err);
-      alert('Failed to delete post.');
+      alert('Ups, sa ei saanud eluga hakkama.');
     },
   });
 }
+
 </script>
 
 <template>
+
   <Head title="Posts" />
 
   <AppLayout :breadcrumbs="breadcrumbs">
@@ -127,13 +127,14 @@ function deletePost(postId: number) {
                   </DropdownMenuTrigger>
 
                   <DropdownMenuContent>
-                    <DropdownMenuItem>View</DropdownMenuItem>
-                    <DropdownMenuItem>Edit</DropdownMenuItem>
+                    <DropdownMenuItem as-child>
+                      <Link :href="show.url(post.id)">View</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem as-child>
+                      <Link :href="edit.url(post.id)">Edit</Link>
+                    </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      class="text-destructive"
-                      @click="deletePost(post.id)"
-                    >
+                    <DropdownMenuItem class="text-destructive" @click="deletePost(post.id)">
                       Delete
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -144,28 +145,15 @@ function deletePost(postId: number) {
         </TableBody>
       </Table>
 
-      <Pagination
-        class="w-full"
-        :page="posts.current_page"
-        v-slot="{ page }"
-        :total="posts.total"
-        :items-per-page="posts.per_page"
-        @update:page="(page) => router.get(index().url, { page: page })"
-      >
+      <Pagination class="w-full" :page="posts.current_page" v-slot="{ page }" :total="posts.total"
+        :items-per-page="posts.per_page" @update:page="(page) => router.get(index().url, { page: page })">
         <PaginationContent v-slot="{ items }" class="flex items-center gap-1">
           <PaginationFirst />
           <PaginationPrevious />
 
           <template v-for="(item, index) in items" :key="index">
-            <PaginationItem
-              v-if="item.type === 'page'"
-              :value="item.value"
-              as-child
-            >
-              <Button
-                class="w-10 h-10 p-0"
-                :variant="item.value === page ? 'default' : 'outline'"
-              >
+            <PaginationItem v-if="item.type === 'page'" :value="item.value" as-child>
+              <Button class="w-10 h-10 p-0" :variant="item.value === page ? 'default' : 'outline'">
                 {{ item.value }}
               </Button>
             </PaginationItem>
