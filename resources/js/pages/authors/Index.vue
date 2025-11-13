@@ -11,7 +11,7 @@ import PaginationNext from '@/components/ui/pagination/PaginationNext.vue';
 import PaginationPrevious from '@/components/ui/pagination/PaginationPrevious.vue';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { destroy, edit, show, index } from '@/routes/posts';
+import { destroy, edit, show, index } from '@/routes/authors';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { MoreVertical } from 'lucide-vue-next';
@@ -64,12 +64,13 @@ type Author = {
 defineProps<{
   authors: PaginatedResponse;
 }>();
+
 const deleteAuthor = (authorId: number) => {
   if (!confirm('Aga miks sa kustutad?')) return;
   router.delete(destroy.url(authorId), {
     preserveScroll: true,
     onSuccess: () => {
-            console.log('Autorit sai kustutatud.');
+      console.log('Autor kustutatud.');
     },
     onError: (err) => {
       console.error(err);

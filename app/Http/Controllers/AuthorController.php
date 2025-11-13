@@ -69,6 +69,7 @@ class AuthorController extends Controller
         ]));
         return redirect()->route('authors.index')->with('success', 'Author updated successfully.');
     }
+    
 
     /**
      * Remove the specified resource from storage.  
@@ -78,4 +79,11 @@ class AuthorController extends Controller
         $author->delete();
         return redirect()->route('authors.index')->with('success', 'Author deleted successfully.');
     }
+    public function destroyConfirm(Author $author)
+    {
+        return Inertia::render('authors/Destroy', [
+            'author' => $author,
+        ]);
+    }
+    
 }
