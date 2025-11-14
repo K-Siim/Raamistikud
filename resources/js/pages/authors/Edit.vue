@@ -4,12 +4,19 @@ import { Head, useForm, router } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { index, update } from '@/routes/authors';
 import type { BreadcrumbItem } from '@/types';
+import { CalendarIcon } from 'lucide-vue-next';
+import { computed, ref } from 'vue';
+import { CalendarDate, parseDate } from '@internationalized/date';
+import { cn } from '@/lib/utils';
+import Calendar from '@/components/ui/calendar/Calendar.vue';
+import Popover from '@/components/ui/popover/Popover.vue';
+import PopoverContent from '@/components/ui/popover/PopoverContent.vue';
+import PopoverTrigger from '@/components/ui/popover/PopoverTrigger.vue';
 
 const props = defineProps<{
-    author: {
+    author: {   
         id: number;
         first_name: string;
         last_name: string;
@@ -19,20 +26,32 @@ const props = defineProps<{
     };
 }>();
 
-
-
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Authors', href: index().url },
     { title: `Edit Author #${props.author.id}`, href: `/authors/${props.author.id}/edit` },
 ];
 
+const dateOfBirth = ref<CalendarDate | undefined>(
+    props.author.date_of_birth ? parseDate(props.author.date_of_birth) : undefined
+);
+
+const formattedDate = computed(() => {
+    if (!dateOfBirth.value) return 'Pick a date';
+    return new Date(dateOfBirth.value.year, dateOfBirth.value.month - 1, dateOfBirth.value.day)
+        .toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+});
+
 const form = useForm({
-                    first_name: props.author.first_name,
+    first_name: props.author.first_name,
     last_name: props.author.last_name,
     date_of_birth: props.author.date_of_birth,
 });
 
 const submit = () => {
+    if (dateOfBirth.value) {
+        form.date_of_birth = `${dateOfBirth.value.year}-${String(dateOfBirth.value.month).padStart(2, '0')}-${String(dateOfBirth.value.day).padStart(2, '0')}`;
+    }
+    
     form.put(update.url(props.author.id), {
         preserveScroll: true,
     });
@@ -56,7 +75,7 @@ const submit = () => {
                 </div>
 
                 <div>
-                                        <Label for="last_name">Last Name</Label>
+                    <Label for="last_name">Last Name</Label>
                     <Input id="last_name" v-model="form.last_name" />
                     <p v-if="form.errors.last_name" class="text-red-600 text-sm">
                         {{ form.errors.last_name }}
@@ -65,8 +84,25 @@ const submit = () => {
 
                 <div>
                     <Label for="date_of_birth">Date of Birth</Label>
-                    <Textarea id="date_of_birth" rows="6" v-model="form.date_of_birth" />
-                    <p v-if="form.errors.date_of_birth" class="text-red-600 text-sm">
+                    <Popover>
+                        <PopoverTrigger as-child>
+                            <Button
+                                id="date_of_birth"
+                                variant="outline"
+                                :class="cn(
+                                    'w-full justify-start text-left font-normal',
+                                    !dateOfBirth && 'text-muted-foreground'
+                                )"
+                            >
+                                <CalendarIcon class="mr-2 h-4 w-4" />
+                                {{ formattedDate }}
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent class="w-auto p-0">
+                            <Calendar :message="dateOfBirth" initial-focus />
+                        </PopoverContent>
+                    </Popover>
+                    <p v-if="form.errors.date_of_birth" class="text-red-600 text-sm mt-1">
                         {{ form.errors.date_of_birth }}
                     </p>
                 </div>
@@ -86,4 +122,4 @@ const submit = () => {
             </form>
         </div>
     </AppLayout>
-</template> 
+</template>
