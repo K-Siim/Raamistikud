@@ -52,12 +52,17 @@ type Post = {
   id: number;
   title: string;
   content: string;
-  author: string;
+  author_id: number;
   published: boolean;
   created_at: string;
   updated_at: string;
   created_at_formatted: string;
   updated_at_formatted: string;
+  author: {
+    id: number;
+    first_name: string;
+    last_name: string;
+  };
 };
 
 
@@ -108,7 +113,7 @@ const deletePost = (postId: number) => {
           <TableRow v-for="post in posts.data" :key="post.id">
             <TableCell class="font-medium">{{ post.id }}</TableCell>
             <TableCell>{{ post.title }}</TableCell>
-            <TableCell>{{ post.author }}</TableCell>
+            <TableCell>{{ post.author.first_name }} {{ post.author.last_name }}</TableCell>
             <TableCell class="text-right">{{ post.created_at_formatted }}</TableCell>
             <TableCell class="text-right">{{ post.updated_at_formatted }}</TableCell>
             <TableCell class="text-right">

@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Testing\Fluent\Concerns\Has;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Post extends Model
 {
@@ -15,7 +17,7 @@ class Post extends Model
     protected $fillable = [
         'title',
         'content',
-        'author',
+        'author_id',
         'published',
     ];   
 
@@ -38,5 +40,13 @@ class Post extends Model
             get: fn() => $this->updated_at?->diffForHumans()
         );
     }
+
+
+    public function author(): BelongsTo
+    {
+        return $this->belongsTo(Author::class, 'author_id');
+    }
+
+    
 
 }

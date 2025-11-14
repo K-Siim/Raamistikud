@@ -3,13 +3,13 @@ import Input from '@/components/ui/input/Input.vue';
 import Label from '@/components/ui/label/Label.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { create, store } from '@/routes/posts';
-import { WeatherData, type BreadcrumbItem } from '@/types';
+import { type BreadcrumbItem } from '@/types';
 import { Head, useForm } from '@inertiajs/vue3';
 import Switch from '@/components/ui/switch/Switch.vue';
 import Button from '@/components/ui/button/Button.vue';
 import Textarea from '@/components/ui/textarea/Textarea.vue';
 import InputError from '@/components/InputError.vue';
-
+import { Select, SelectContent, SelectGroup, SelectItem,  SelectTrigger, SelectValue } from '@/components/ui/select';
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Posts create',
@@ -20,12 +20,12 @@ const breadcrumbs: BreadcrumbItem[] = [
 const form = useForm({
     title: '',
     content: '',
-    author: '',
+    author_id: '',
     published: false,
 });
-defineProps<{
-    weather: WeatherData;
-}>();
+
+const props = defineProps<{authors: Record<number, string>;}>();
+console.log(props.authors);
 
 const submit = () => {
     form.post(store().url);
@@ -56,9 +56,21 @@ const submit = () => {
                             </div>
                             <div>
                                 <Label for="author">Author</Label>
-                                <Input class="mt-1" id="author" v-model="form.author" />
-                                <InputError :message="form.errors.author"/>
+                                  <Select>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Select an author" />
+                                    </SelectTrigger>
+                                    <SelectContent class="w-(--reka-select-trigger-width)">
+                                      <SelectGroup>
+                                        <SelectItem v-for="(name, id) in authors" :key="id" :value="id"> {{ name }}  </SelectItem>
+                                      </SelectGroup>
+                                    </SelectContent>
+                                  </Select>
+                                
+                                <!-- <Input class="mt-1" id="author_id" v-model="form.author_id" /> -->
+                                <InputError :message="form.errors.author_id"/>
                             </div>
+                            
                             <div class="flex items-center space-x-2">
                                 <Switch id="published" />
                                 <Label for="published">Published</Label>

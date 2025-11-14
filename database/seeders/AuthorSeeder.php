@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use App\Models\Author;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-
+use App\Models\Post;
 class AuthorSeeder extends Seeder
 {
     /**
@@ -13,6 +13,8 @@ class AuthorSeeder extends Seeder
      */
     public function run(): void
     {
-        Author::factory()->count(10000)->create();
+        Author::factory()->count(100)
+        ->has(Post::factory(3), 'posts')
+        ->create();
     }
 }

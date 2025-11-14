@@ -5,19 +5,22 @@ namespace App\Http\Controllers;
 use App\Models\Post;
 use Illuminate\Http\Request;
 use Inertia\Inertia; 
-
+use App\Models\Author;
 class PostController extends Controller
 {
     public function index()
     {
         return Inertia::render('posts/Index', [
-            'posts' => Post::paginate(30),
+            'posts' => Post::with('author:id,first_name,last_name')->paginate(30),
         ]);
     }
 
     public function create()
     {
-        return Inertia::render('posts/Create'); 
+        
+        return Inertia::render('posts/Create', [
+            'authors' => Author::all()->mapWithKeys(fn($author) => [$author->id => $author->first_name . ' ' . $author->last_name]),
+        ]); 
     }
 
     public function store(Request $request)
