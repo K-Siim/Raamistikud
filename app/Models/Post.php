@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Testing\Fluent\Concerns\Has;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\Comment;
 
 class Post extends Model
 {
@@ -46,7 +47,9 @@ class Post extends Model
     {
         return $this->belongsTo(Author::class, 'author_id');
     }
-
     
-
+    public function comments(): HasMany
+    {
+        return $this->hasMany(Comment::class);
+    }
 }

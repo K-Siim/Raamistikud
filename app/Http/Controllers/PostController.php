@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Post;
 use Illuminate\Http\Request;
-use Inertia\Inertia; 
+use Inertia\Inertia;
 use App\Models\Author;
 class PostController extends Controller
 {
@@ -17,36 +17,37 @@ class PostController extends Controller
 
     public function create()
     {
-        
+
         return Inertia::render('posts/Create', [
             'authors' => Author::all()->mapWithKeys(fn($author) => [$author->id => $author->first_name . ' ' . $author->last_name]),
-        ]); 
+        ]);
     }
 
     public function store(Request $request)
     {
-        Post::create($request ->validate([
+        Post::create($request->validate([
             'title' => 'required|string|max:255',
             'content' => 'required|string',
-            'author' => 'required|string|max:100',
+            'author_id' => 'required|exists:authors,id',
             'published' => 'boolean',
         ]));
         return redirect()->route('posts.index');
 
-        
+
     }
 
     public function show(Post $post)
     {
         return Inertia::render('posts/View', [
-            'post' => $post,
+            'post' => $post->load('author:id,first_name,last_name'),
         ]);
     }
 
     public function edit(Post $post)
     {
         return Inertia::render('posts/Edit', [
-            'post' => $post,
+            'post' => $post->load('author:id,first_name,last_name'),
+            'authors' => Author::all()->mapWithKeys(fn($author) => [$author->id => $author->first_name . ' ' . $author->last_name]),
         ]);
     }
 
@@ -55,7 +56,7 @@ class PostController extends Controller
         $post->update($request->validate([
             'title' => 'required|string|max:255',
             'content' => 'required|string',
-            'author' => 'required|string|max:100',
+            'author_id' => 'required|exists:authors,id',
             'published' => 'boolean',
         ]));
         return redirect()->route('posts.index')->with('success', 'Post updated successfully.');
@@ -65,8 +66,8 @@ class PostController extends Controller
     {
         $post->delete();
 
-    return redirect()->back()->with('success', 'Postitus kustutatud.');
+        return redirect()->back()->with('success', 'Postitus kustutatud.');
     }
 
-    
+
 }
