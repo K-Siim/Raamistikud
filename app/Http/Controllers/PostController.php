@@ -40,6 +40,7 @@ class PostController extends Controller
     {
         return Inertia::render('posts/View', [
             'post' => $post->load('author:id,first_name,last_name'),
+            dd($post ->loadMissing('author', 'comments')),
         ]);
     }
 

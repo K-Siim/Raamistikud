@@ -63,6 +63,14 @@ type Post = {
     first_name: string;
     last_name: string;
   };
+  comments?: [
+    {
+    id: number;
+    post_id: number;
+    user_id: number;
+    content: string;
+  }
+  ][];
 };
 
 

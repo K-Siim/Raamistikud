@@ -9,9 +9,10 @@ use Illuminate\Testing\Fluent\Concerns\Has;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\Comment;
-
+use App\Traits\HasFormatedDate;
 class Post extends Model
 {
+    use HasFormatedDate;
 
     use HasFactory;
 
@@ -28,19 +29,7 @@ class Post extends Model
 ];
     
 
-    protected function createdAtFormatted(): Attribute
-    {
-       return Attribute::make(
-            get: fn() => $this->created_at?->diffForHumans()
-        );
-    }
-
-    protected function updatedAtFormatted(): Attribute
-    {
-       return Attribute::make(
-            get: fn() => $this->updated_at?->diffForHumans()
-        );
-    }
+   
 
 
     public function author(): BelongsTo

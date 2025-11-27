@@ -22,6 +22,14 @@ const props = defineProps<{
     updated_at: string;
     created_at_formatted: string;
     updated_at_formatted: string;
+    comments: [
+      {
+        id: number;
+        post_id: number;
+        user_id: number;
+        content: string;
+      }
+    ];
   };
 }>();
 
@@ -123,5 +131,10 @@ const statusClasses = computed(() =>
         </section>
       </div>
     </div>
+    <ul>
+      <li v-for="comment in props.post.comments" :key="comment.id">
+        <p>{{ comment.id }} {{ comment.content }}</p>
+      </li>
+    </ul>
   </AppLayout>
 </template>
