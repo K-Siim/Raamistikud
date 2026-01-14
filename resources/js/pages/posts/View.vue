@@ -1,10 +1,25 @@
     <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import Button from '@/components/ui/button/Button.vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, useForm } from '@inertiajs/vue3';
 import { computed } from 'vue';
+import { Textarea } from '@/components/ui/textarea';
 import { edit, index, show } from '@/routes/posts';
+import { add } from '@/routes/comments';
 import type { BreadcrumbItem } from '@/types';
+
+
+interface Comment {
+  id: number;
+  post_id: number;
+  user_id: number;
+  content: string;
+  created_at: string;
+  user?: {
+    id: number;
+    name: string;
+  } | null;
+}
 
 const props = defineProps<{
   post: {
@@ -22,14 +37,7 @@ const props = defineProps<{
     updated_at: string;
     created_at_formatted: string;
     updated_at_formatted: string;
-    comments: [
-      {
-        id: number;
-        post_id: number;
-        user_id: number;
-        content: string;
-      }
-    ];
+    comments: Comment[];
   };
 }>();
 
@@ -44,13 +52,34 @@ const statusClasses = computed(() =>
     ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
     : 'bg-slate-100 text-slate-600 border border-slate-200',
 );
+
+const hasComments = computed(() => props.post.comments.length > 0);
+
+const commentAuthor = (comment: Comment) => comment.user?.name ?? 'Anonymous';
+const authorInitial = (comment: Comment) => commentAuthor(comment).charAt(0).toUpperCase();
+
+
+const form = useForm({
+  content: '',
+});
+
+const submit = () => {
+  form.post(add(props.post.id).url, {
+    preserveScroll:true,
+    onSuccess: () => {
+      form.reset();
+    },
+  });
+};
+
+
 </script>
 
 <template>
   <Head :title="props.post.title" />
 
   <AppLayout :breadcrumbs="breadcrumbs">
-    <div class="flex h-full justify-center overflow-x-auto p-6">
+    <div class="flex h-full flex-col items-center gap-6 overflow-x-auto p-6">
       <div class="w-full max-w-3xl space-y-8">
         <!-- Blog header -->
         <header class="space-y-4 rounded-xl border border-border/60 bg-card p-8 shadow-sm">
@@ -121,7 +150,6 @@ const statusClasses = computed(() =>
           </dl>
         </header>
 
-        <!-- Blog content -->
         <section class="rounded-xl border border-border/60 bg-background p-8 shadow-sm">
           <article class="prose prose-slate max-w-none text-base leading-relaxed text-foreground/90 dark:prose-invert">
             <p class="whitespace-pre-line">
@@ -130,11 +158,57 @@ const statusClasses = computed(() =>
           </article>
         </section>
       </div>
+
+      <section class="w-full max-w-3xl rounded-xl border border-border/60 bg-background p-8 shadow-sm">
+        <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h3 class="text-lg font-semibold text-foreground">Comments</h3>
+            <div class="pb-6">
+              <form @submit.prevent="submit" id="comment-form">
+                <Textarea v-model="form.content"></Textarea>
+              </form>
+              <div class="flex mt-4 justify-end">
+                <Button form="comment-form" type="submit">Submit</Button>
+              </div>
+            </div>
+            <p class="text-sm text-muted-foreground">
+              {{ hasComments ? 'Join the conversation below.' : 'No comments yet — be the first to share your thoughts.' }}
+            </p>
+          </div>
+          <span class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-muted text-sm font-semibold text-foreground">
+            {{ props.post.comments.length }}
+          </span>
+        </div>
+
+        <template v-if="hasComments">
+          <ul class="space-y-4">
+            <li
+              v-for="comment in props.post.comments"
+              :key="comment.id"
+              class="rounded-xl border border-border/40 bg-muted/30 p-4"
+            >
+              <div class="flex items-start gap-3">
+                <div class="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-sm font-semibold text-foreground/80">
+                  {{ authorInitial(comment) }}
+                </div>
+                <div class="flex-1 space-y-1">
+                  <div class="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                    <span class="font-medium text-foreground">{{ commentAuthor(comment) }}</span>
+                    <span class="text-xs text-border">•</span>
+                    <span>{{ comment.created_at }}</span>
+                  </div>
+                  <p class="text-base text-foreground">{{ comment.content }}</p>
+                </div>
+              </div>
+            </li>
+          </ul>
+        </template>
+        <template v-else>
+          <div class="rounded-lg border border-dashed border-border/70 bg-muted/30 p-6 text-center text-sm text-muted-foreground">
+            No comments yet. Start the discussion by leaving the first comment.
+          </div>
+        </template>
+      </section>
     </div>
-    <ul>
-      <li v-for="comment in props.post.comments" :key="comment.id">
-        <p>{{ comment.id }} {{ comment.content }}</p>
-      </li>
-    </ul>
   </AppLayout>
 </template>

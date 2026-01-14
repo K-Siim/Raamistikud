@@ -48,6 +48,22 @@ interface PaginatedResponse {
   total: number;
 }
 
+type User = {
+  id:number;
+  name:string;
+  email:string;
+}
+
+type Comment = {
+  id: number;
+  post_id: number;
+  user_id: number;
+  content: string;
+  created_at: string;
+  updated_at: string;
+  user?: User | null;
+};
+
 type Post = {
   id: number;
   title: string;
@@ -63,14 +79,7 @@ type Post = {
     first_name: string;
     last_name: string;
   };
-  comments?: [
-    {
-    id: number;
-    post_id: number;
-    user_id: number;
-    content: string;
-  }
-  ][];
+  comments?: Comment[];
 };
 
 
