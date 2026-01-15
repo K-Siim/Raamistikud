@@ -5,6 +5,8 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PostController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Mail\Timetable;
+
 
 Route::get('/', function () {
     return Inertia::render('Welcome');
@@ -15,6 +17,10 @@ Route::middleware(['auth', 'verified'])->group(function(){
 Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
 Route::get('/posts/{post}/edit', [PostController::class, 'edit'])->name('posts.edit');
 Route::post('/add-comment/{post}', [CommentController::class, 'store'])->name('comments.add');
+Route::get('/mailable', function () {
+    
+  return new Timetable($timetableEvents, $startDate, $endDate);
+  });
 
 
 });
