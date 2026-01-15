@@ -2,66 +2,48 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Support\Facades\Http;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
 use Carbon\Carbon;
+use App\Mail\Timetable;
 
 class TimetableNotification extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
     protected $signature = 'app:timetable-notification';
+    protected $description = 'Fetch timetable events and send via email';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
-    protected $description = 'Command description';
-
-    /**
-     * Execute the console command.
-     */
     public function handle()
     {
+        $startDate = now()->startOfWeek();
+        $endDate   = now()->endOfWeek();
 
         $response = Http::get('https://tahveltp.edu.ee/hois_back/timetableevents/timetableSearch', [
-            'from' => now()->startOfWeek(1)->toIsoString(),
+            'from' => $startDate->toIsoString(),
+            'thru' => $endDate->toIsoString(),
             'lang' => 'ET',
             'page' => 0,
-            'schoolId' => 38,
             'size' => 50,
+            'schoolId' => 38,
             'studentGroups' => '39248890-7051-4182-9a9a-8a82259b862b',
-            'thru' => now()->endOfWeek()->toIsoString(),
         ]);
 
-        $data = $response->json();
+        
+        $timetableEvents = collect($response['content'] ?? [])
+            ->sortBy(fn($event) => $event['date'] . ' ' . $event['timeStart'])
+            ->groupBy(fn($event) =>
+                Carbon::parse($event['date'])
+                    ->locale('et_EE')
+                    ->dayName
+            );
 
-        $entries = [];
+        
+        Mail::to('test@test.ee')->send(
+            new Timetable($timetableEvents, $startDate, $endDate)
+        );
 
-        foreach (data_get($data, 'content', []) as $item) {
-            $date = Carbon::parse(data_get($item, 'date'))->locale('et');
-            $dayName = $date->dayName;
+        $this->info('✅ Timetable email sent successfully!');
 
-
-            if (!array_key_exists($dayName, $entries)) {
-                $entries[$dayName] = [
-                    'date' => $date->translatedFormat('d F Y'),
-                    'day'  => $dayName,
-                ];
-            }
-
-            $entries[$dayName]['entries'][]= [
-                'name' => data_get($item, 'nameEt'),
-                'start' => data_get($item, 'timeStart'),
-                'end' => data_get($item, 'timeEnd'),
-                'room' => data_get($item, 'rooms.0.roomCode'),
-            ];
-        }
-
-        dd($entries);
+        return 0;
     }
 }

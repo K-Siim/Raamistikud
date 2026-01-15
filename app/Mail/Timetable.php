@@ -51,8 +51,3 @@ class Timetable extends Mailable
 
 
 
-
-
-
-
-
